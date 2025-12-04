@@ -1,0 +1,347 @@
+{
+  "name": "Medical Test Prerequisite Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "433c55da-5b0c-4d84-af70-6da2025e6eac",
+        "formTitle": "Patient Test Request Form",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Full Name",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Email",
+              "fieldType": "email",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Phone Number",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "=Select Test/Scan",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Blood Test"
+                  },
+                  {
+                    "option": "MRI "
+                  },
+                  {
+                    "option": "Ultrasound"
+                  },
+                  {
+                    "option": "CT Scan"
+                  }
+                ]
+              },
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {
+          "formSubmittedText": "Your response has been recorded"
+        }
+      },
+      "id": "04329d9e-c598-4e99-87ce-5d36924daac8",
+      "name": "Form Trigger",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 1,
+      "position": [
+        -704,
+        128
+      ],
+      "webhookId": "433c55da-5b0c-4d84-af70-6da2025e6eac"
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json['Select Test/Scan'] }}",
+        "rules": {
+          "rules": [
+            {
+              "value2": "Blood Test"
+            },
+            {
+              "value2": "MRI",
+              "output": 1
+            },
+            {
+              "value2": "Ultrasound",
+              "output": 2
+            },
+            {
+              "value2": "CT Scan",
+              "output": 3
+            }
+          ]
+        }
+      },
+      "id": "ab498465-2da4-4b0d-88a3-c98934169480",
+      "name": "Select Test",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [
+        -480,
+        96
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "prerequisite",
+              "value": "You must fast for 10–12 hours before your fasting blood test. You may drink only water during this time."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "6e7f4c5f-0ae5-43ed-b989-030cd6dbef88",
+      "name": "Set Prerequisite - Blood Test",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        -256,
+        -160
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "prerequisite",
+              "value": "Do not wear any metal items such as jewelry, belts, coins, watches, or hairpins. Remove any metallic objects before the MRI. Inform us if you have implants, pacemakers, metal plates, or if you are pregnant."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "39606f1e-a115-4bb0-9990-08f70b256d67",
+      "name": "Set Prerequisite - MRI",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        -256,
+        32
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "prerequisite",
+              "value": "Drink 4–5 glasses of water about one hour before your scan and avoid urinating. You must arrive with a full bladder for a clear ultrasound image."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "2063052e-c6ca-4c20-b803-337845fcc546",
+      "name": "Set Prerequisite - Ultrasound Abdomen",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        -256,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "prerequisite",
+              "value": "Do not eat anything for 4–6 hours before the CT scan with contrast. You may drink water. Inform us if you have allergies, asthma, diabetes, kidney issues, or if you are pregnant."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "51b68065-9c6a-4d9c-b92c-14b9982c9bce",
+      "name": "Set Prerequisite - CT Contrast",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        -256,
+        416
+      ]
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Rewrite the following medical instruction in simple, clear, patient-friendly language. \nDo NOT change the medical meaning. \nDo NOT add new instructions.\n\nText:\n{{$json.prerequisite}}\n"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        -32,
+        128
+      ],
+      "id": "53776f5f-e9d4-4d2c-a4d1-da0beb90d66a",
+      "name": "Message a model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "TrUITR6kwVbMcWs9",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "urvikasingh10@gmail.com",
+        "toEmail": "={{ $('Form Trigger').item.json.Email }}",
+        "subject": "=Your Test Instructions – {{ $('Form Trigger').item.json['Select Test/Scan'] }}",
+        "emailFormat": "text",
+        "text": "=Hello {{ $('Form Trigger').item.json['Full Name'] }}, \n\nHere are the instructions for your upcoming test, {{ $('Form Trigger').item.json['Select Test/Scan'] }}:\n\n{{$json[\"content\"][\"parts\"][0][\"text\"]}}\n\n\nIf you have any questions, feel free to contact us.\n\nThank you,\nYour Medical Centre\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        320,
+        128
+      ],
+      "id": "cdb97bc0-eeb4-415e-8319-6609f1e33e5a",
+      "name": "Send email",
+      "webhookId": "53bc7374-e144-43fa-933e-4def23bbc3e8",
+      "credentials": {
+        "smtp": {
+          "id": "ujch1POTSiKoTWoU",
+          "name": "SMTP account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Form Trigger": {
+      "main": [
+        [
+          {
+            "node": "Select Test",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select Test": {
+      "main": [
+        [
+          {
+            "node": "Set Prerequisite - Blood Test",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Set Prerequisite - MRI",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Set Prerequisite - Ultrasound Abdomen",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Set Prerequisite - CT Contrast",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Prerequisite - Blood Test": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Prerequisite - MRI": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Prerequisite - Ultrasound Abdomen": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Prerequisite - CT Contrast": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Send email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "dd3c0923-94f3-4f78-83ec-9185c0bc3f56",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "27806759646a8c993822eaf09bea425857247b44fa24a81fd801a58d19dc5990"
+  },
+  "id": "oFF48zBuoSGfZmKl",
+  "tags": []
+}
